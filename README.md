@@ -1,5 +1,10 @@
 # elavora/api-storage-s3
 
+[![Packagist Version](https://img.shields.io/packagist/v/elavora/api-storage-s3.svg?style=flat-square)](https://packagist.org/packages/elavora/api-storage-s3)
+[![PHP Version](https://img.shields.io/packagist/php-v/elavora/api-storage-s3.svg?style=flat-square)](https://packagist.org/packages/elavora/api-storage-s3)
+[![Composer Quality](https://github.com/Elavora/api-storage-s3/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/Elavora/api-storage-s3/actions/workflows/quality.yml)
+[![CodeQL](https://github.com/Elavora/api-storage-s3/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/Elavora/api-storage-s3/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/packagist/l/elavora/api-storage-s3.svg?style=flat-square)](LICENSE)
 Armazenamento S3 opcional para o framework Elavora.
 
 Registre `S3StorageExtension` com `bucket` e as configuracoes aceitas pelo
