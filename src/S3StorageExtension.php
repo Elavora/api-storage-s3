@@ -10,11 +10,12 @@ use Elavora\Api\Framework\Application;
 use Elavora\Api\Framework\Container;
 use Elavora\Api\Framework\Contracts\Extension;
 use Elavora\Api\Framework\Contracts\Storage;
-use InvalidArgumentException;
+use LogicException;
 
 final class S3StorageExtension implements Extension
 {
     private readonly S3ClientConfig $clientConfig;
+    private readonly string $bucket;
 
     /**
      * @param array<string, mixed> $config Configuracao do bucket e do cliente S3.
@@ -22,10 +23,11 @@ final class S3StorageExtension implements Extension
      * @param S3ClientFactory|null $clientFactory Factory customizada para criar clientes S3.
      */
     public function __construct(
-        private readonly array $config,
+        array $config,
         private readonly ?S3Client $client = null,
         private readonly ?S3ClientFactory $clientFactory = null
     ) {
+        $this->bucket = S3BucketName::validate($config['bucket'] ?? null);
         $this->clientConfig = S3ClientConfig::fromStorageConfig($config);
     }
 
@@ -43,21 +45,20 @@ final class S3StorageExtension implements Extension
 
         $application->container()->bind(
             Storage::class,
-            fn (Container $container): S3Storage => new S3Storage(
-                client: $container->get(S3ClientFactory::class)->client($this->clientConfig),
-                bucket: $this->bucket()
-            )
+            fn (Container $container): S3Storage => $this->createStorage($container)
         );
     }
 
-    private function bucket(): string
+    private function createStorage(Container $container): S3Storage
     {
-        $bucket = $this->config['bucket'] ?? null;
-
-        if (!is_string($bucket) || trim($bucket) === '') {
-            throw new InvalidArgumentException('A configuracao S3 deve informar bucket.');
+        $factory = $container->get(S3ClientFactory::class);
+        if (!$factory instanceof S3ClientFactory) {
+            throw new LogicException('O container retornou uma factory S3 invalida.');
         }
 
-        return $bucket;
+        return new S3Storage(
+            client: $factory->client($this->clientConfig),
+            bucket: $this->bucket
+        );
     }
 }
