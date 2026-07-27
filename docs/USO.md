@@ -1,53 +1,54 @@
 # Guia de uso
 
-Armazenamento S3 opcional para o framework Elavora.
-
-## Instalacao
-
-```bash
-composer require elavora/api-storage-s3
-```
-
-## Quando usar
-
-- Salvar e ler arquivos por contrato comum.
-- Trocar storage local por S3 sem alterar services de dominio.
-- Centralizar configuracao de paths, buckets e chaves.
-
-## Exemplo rapido
+`S3StorageExtension` e a extensao registrada na aplicacao. Ela cria o storage e usa uma factory para obter o cliente S3.
 
 ```php
-use Elavora\Api\Extension\StorageS3\FixedS3ClientFactory;
+use Elavora\Api\Extension\StorageS3\S3StorageExtension;
+use Elavora\Api\Framework\Application;
+use Elavora\Api\Framework\Contracts\Storage;
 
-$application->extend(new FixedS3ClientFactory([
-    // Configure caminho, bucket ou credenciais conforme o driver.
+$application = Application::create()->extend(new S3StorageExtension([
+    'bucket' => 'uploads',
+    'region' => 'us-east-1',
+    'version' => 'latest',
 ]));
+
+$storage = $application->container()->get(Storage::class);
+$storage->put('documents/report.txt', 'conteudo');
+$url = $storage->temporaryUrl('documents/report.txt');
 ```
 
-## Principais pontos de entrada
+Para usar um cliente pronto:
 
-- `Elavora\Api\Extension\StorageS3\FixedS3ClientFactory`
-- `Elavora\Api\Extension\StorageS3\NativeS3ClientFactory`
-- `Elavora\Api\Extension\StorageS3\S3ClientConfig`
-- `Elavora\Api\Extension\StorageS3\S3ClientManager`
-- `Elavora\Api\Extension\StorageS3\S3ServiceRegistrar`
+```php
+use Aws\S3\S3Client;
+use Elavora\Api\Extension\StorageS3\FixedS3ClientFactory;
+use Elavora\Api\Extension\StorageS3\S3StorageExtension;
 
-## Dependencias de runtime
+$client = new S3Client([
+    'region' => 'us-east-1',
+    'version' => 'latest',
+]);
 
-- `aws/aws-sdk-php` `^3.381`
-- `elavora/api-framework` `^0.3.1`
+$application->extend(new S3StorageExtension(
+    config: [
+        'bucket' => 'uploads',
+        'region' => 'us-east-1',
+        'version' => 'latest',
+    ],
+    clientFactory: new FixedS3ClientFactory($client)
+));
+```
 
-## Validacao no projeto consumidor
+`S3StorageExtension` integra o pacote ao framework, `S3ClientFactory` controla a criacao ou reutilizacao do cliente e `S3Client` executa as chamadas ao servico.
 
-Depois de instalar o pacote, rode os testes da aplicacao consumidora. Para uma verificacao isolada do pacote, use container:
+O bucket deve ser uma string nao vazia e sem whitespace externo. Ele nao e repassado nas opcoes do cliente.
+
+## Validacao do pacote
+
+Execute a partir da raiz do clone:
 
 ```bash
-docker run --rm -v "${PWD}:/workspace" -w "/workspace/api-storage-s3" composer:2 composer validate --strict --no-check-publish
-docker run --rm -v "${PWD}:/workspace" -w "/workspace/api-storage-s3" composer:2 sh -lc "find . \\( -path ./.git -o -path ./vendor \\) -prune -o -name '*.php' -print0 | xargs -0 -r -n1 php -l"
+docker run --rm -v "${PWD}:/workspace" -w /workspace composer:2 composer update --no-interaction --no-progress --prefer-dist
+docker run --rm -v "${PWD}:/workspace" -w /workspace composer:2 composer check
 ```
-
-## Observacoes
-
-- Mantenha regras de produto fora deste pacote.
-- Prefira configurar extensoes no bootstrap da aplicacao.
-- Instale apenas os modulos que a aplicacao realmente usa.

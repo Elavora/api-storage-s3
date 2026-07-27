@@ -13,17 +13,17 @@ use RuntimeException;
 
 final class S3Storage implements Storage
 {
+    private readonly string $bucket;
+
     /**
      * @param S3Client $client Cliente S3 usado nas operacoes.
-     * @param string $bucket Bucket padrao do storage.
+     * @param mixed $bucket Bucket padrao do storage.
      */
     public function __construct(
         private readonly S3Client $client,
-        private readonly string $bucket
+        mixed $bucket
     ) {
-        if (trim($this->bucket) === '') {
-            throw new InvalidArgumentException('O bucket S3 e obrigatorio.');
-        }
+        $this->bucket = S3BucketName::validate($bucket);
     }
 
     /**
@@ -107,6 +107,10 @@ final class S3Storage implements Storage
         return $this->client;
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
     private function run(string $method, array $arguments): array
     {
         try {
