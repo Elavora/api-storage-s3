@@ -19,7 +19,7 @@ final class S3Storage implements Storage
      */
     public function __construct(
         private readonly S3Client $client,
-        private readonly string $bucket
+        private readonly string $bucket,
     ) {
         if (trim($this->bucket) === '') {
             throw new InvalidArgumentException('O bucket S3 e obrigatorio.');
@@ -38,7 +38,7 @@ final class S3Storage implements Storage
     {
         return $this->run('putObject', array_merge(
             $options,
-            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key), 'Body' => $body]
+            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key), 'Body' => $body],
         ));
     }
 
@@ -53,7 +53,7 @@ final class S3Storage implements Storage
     {
         return $this->run('getObject', array_merge(
             $options,
-            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)]
+            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)],
         ));
     }
 
@@ -68,7 +68,7 @@ final class S3Storage implements Storage
     {
         return $this->run('deleteObject', array_merge(
             $options,
-            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)]
+            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)],
         ));
     }
 
@@ -82,7 +82,7 @@ final class S3Storage implements Storage
     public function temporaryUrl(
         string $key,
         ?DateTimeImmutable $expiresAt = null,
-        array $options = []
+        array $options = [],
     ): string {
         $expiresAt ??= new DateTimeImmutable('+15 minutes');
 
@@ -92,7 +92,7 @@ final class S3Storage implements Storage
 
         $command = $this->client->getCommand('GetObject', array_merge(
             $options,
-            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)]
+            ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)],
         ));
         $request = $this->client->createPresignedRequest($command, $expiresAt);
 
@@ -107,6 +107,10 @@ final class S3Storage implements Storage
         return $this->client;
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
     private function run(string $method, array $arguments): array
     {
         try {
@@ -115,7 +119,7 @@ final class S3Storage implements Storage
             throw new RuntimeException(
                 'Nao foi possivel executar a operacao no storage S3: ' . $exception->getMessage(),
                 (int) $exception->getCode(),
-                $exception
+                $exception,
             );
         }
     }

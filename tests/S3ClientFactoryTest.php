@@ -49,7 +49,7 @@ final class S3ClientFactoryTest extends TestCase
         $client = $this->clientWithResults();
         $application = Application::create()->extend(new S3StorageExtension(
             config: ['bucket' => 'uploads'],
-            client: $client
+            client: $client,
         ));
 
         $storage = $application->container()->get(Storage::class);

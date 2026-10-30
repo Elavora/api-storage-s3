@@ -19,9 +19,8 @@ final class S3ClientManager implements S3ClientFactory
      * @param S3ClientFactory $factory Factory concreta usada ao criar clientes novos.
      */
     public function __construct(
-        private readonly S3ClientFactory $factory = new NativeS3ClientFactory()
-    ) {
-    }
+        private readonly S3ClientFactory $factory = new NativeS3ClientFactory(),
+    ) {}
 
     /**
      * Retorna um cliente S3 reutilizado para a configuracao informada.

@@ -15,9 +15,7 @@ final class FixedS3ClientFactory implements S3ClientFactory
     /**
      * @param S3Client $client Cliente que sempre sera retornado.
      */
-    public function __construct(private readonly S3Client $client)
-    {
-    }
+    public function __construct(private readonly S3Client $client) {}
 
     /**
      * Retorna o cliente S3 informado no construtor.

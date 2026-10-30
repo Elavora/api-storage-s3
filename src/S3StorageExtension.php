@@ -24,7 +24,7 @@ final class S3StorageExtension implements Extension
     public function __construct(
         private readonly array $config,
         private readonly ?S3Client $client = null,
-        private readonly ?S3ClientFactory $clientFactory = null
+        private readonly ?S3ClientFactory $clientFactory = null,
     ) {
         $this->clientConfig = S3ClientConfig::fromStorageConfig($config);
     }
@@ -43,10 +43,15 @@ final class S3StorageExtension implements Extension
 
         $application->container()->bind(
             Storage::class,
-            fn (Container $container): S3Storage => new S3Storage(
-                client: $container->get(S3ClientFactory::class)->client($this->clientConfig),
-                bucket: $this->bucket()
-            )
+            function (Container $container): S3Storage {
+                /** @var S3ClientFactory $factory */
+                $factory = $container->get(S3ClientFactory::class);
+
+                return new S3Storage(
+                    client: $factory->client($this->clientConfig),
+                    bucket: $this->bucket(),
+                );
+            },
         );
     }
 

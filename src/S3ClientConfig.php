@@ -12,9 +12,7 @@ final class S3ClientConfig
     /**
      * @param array<string, mixed> $options
      */
-    public function __construct(private readonly array $options)
-    {
-    }
+    public function __construct(private readonly array $options) {}
 
     /**
      * @param array<string, mixed> $config
@@ -49,7 +47,7 @@ final class S3ClientConfig
         if (is_array($value)) {
             ksort($value);
 
-            return array_map(fn (mixed $item): mixed => $this->normalizedValue($item), $value);
+            return array_map(fn(mixed $item): mixed => $this->normalizedValue($item), $value);
         }
 
         if (is_object($value)) {
