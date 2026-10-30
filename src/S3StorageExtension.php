@@ -43,10 +43,15 @@ final class S3StorageExtension implements Extension
 
         $application->container()->bind(
             Storage::class,
-            fn(Container $container): S3Storage => new S3Storage(
-                client: $container->get(S3ClientFactory::class)->client($this->clientConfig),
-                bucket: $this->bucket(),
-            ),
+            function (Container $container): S3Storage {
+                /** @var S3ClientFactory $factory */
+                $factory = $container->get(S3ClientFactory::class);
+
+                return new S3Storage(
+                    client: $factory->client($this->clientConfig),
+                    bucket: $this->bucket(),
+                );
+            },
         );
     }
 

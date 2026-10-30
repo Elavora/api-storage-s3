@@ -107,6 +107,10 @@ final class S3Storage implements Storage
         return $this->client;
     }
 
+    /**
+     * @param array<string, mixed> $arguments
+     * @return array<string, mixed>
+     */
     private function run(string $method, array $arguments): array
     {
         try {
