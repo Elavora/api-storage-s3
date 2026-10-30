@@ -23,7 +23,7 @@ final class S3ServiceRegistrar
 
         $application->container()->bind(
             S3ClientFactory::class,
-            new S3ClientManager($factory ?? new NativeS3ClientFactory())
+            new S3ClientManager($factory ?? new NativeS3ClientFactory()),
         );
     }
 }
