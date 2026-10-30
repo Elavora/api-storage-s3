@@ -32,7 +32,19 @@ Este pacote é aditivo. Ele não substitui `Elavora\Api\Interface\Storage`,
 `Elavora\Api\Integration\Storage\S3Storage` ou o alias legado
 `Elavora\Api\Integration\S3Storage` do módulo `elavora/api-api`.
 
-Mais exemplos: [docs/USO.md](docs/USO.md).
+Especificação completa, exemplos e erros: [docs/USO.md](docs/USO.md).
+
+## Instalação
+
+```bash
+composer require elavora/api-storage-s3
+```
+
+Requisitos: PHP 8.3 ou superior, `elavora/api-framework` `^2.0` e `aws/aws-sdk-php` `^3.381`.
+
+Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
+8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o
+[guia de migração](docs/USO.md#versão-e-compatibilidade)).
 
 ## Desenvolvimento e testes
 
@@ -76,7 +88,7 @@ GitHub Release são geradas em português a partir dos PRs. Veja [Versões e rel
 
 ## Documentação
 
-1. [Guia de uso](docs/USO.md): o uso do pacote e a API pública.
+1. [Guia de uso](docs/USO.md): a especificação do pacote, com a API pública, as opções, os erros e a migração.
 2. [Desenvolvimento e testes](docs/DESENVOLVIMENTO.md): ambiente, como rodar os testes e o que roda no CI.
 3. [Automação do repositório](docs/AUTOMACAO.md): workflows, Dependabot, estilo de código, labels e versões.
 

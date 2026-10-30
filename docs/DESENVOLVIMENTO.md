@@ -77,6 +77,10 @@ e por PR. A descrição do PR segue o template da organização.
 As labels do PR definem a versão que sai no merge, e a label `release` publica a estável. Veja
 [Versões e release](AUTOMACAO.md#versões-e-release).
 
+Exceção desta adoção: o upgrade para o `elavora/api-framework` `^2.0` (PHP `>=8.3`) e o pipeline central vão num único
+PR, com commits separados por assunto, e as labels `upgrade` e `release` (sai a `1.0.0`). O motivo é que 5 dos 6 testes
+já falham na `main` com o framework 0.3.
+
 ## Testes que precisam de S3 real
 
 A suíte atual não precisa: ela usa o `Aws\MockHandler`, sem rede, sem credenciais e sem servidor S3, e roda inteira no
