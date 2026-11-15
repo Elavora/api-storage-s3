@@ -91,13 +91,13 @@ test.describe('composer.json', () => {
         assert.ok('elavora/api-framework' in (c.require || {}), 'dependência de runtime perdida');
     });
 
-    test('require tem elavora/api-framework ^2.0 (upgrade para o framework 2 no mesmo PR)', () => {
-        assert.equal((composer().require || {})['elavora/api-framework'], '^2.0');
+    test('require tem elavora/api-framework ^3.0 (upgrade para o framework 3 no mesmo PR)', () => {
+        assert.equal((composer().require || {})['elavora/api-framework'], '^3.0');
     });
 
-    test('extra.branch-alias: dev-main é 1.0-dev', () => {
+    test('extra.branch-alias: dev-main é 2.0-dev', () => {
         const alias = ((composer().extra || {})['branch-alias'] || {})['dev-main'];
-        assert.equal(alias, '1.0-dev');
+        assert.equal(alias, '2.0-dev');
     });
 
     test('elavora/code-standards ^1.N (N >= 1) em require-dev, fora do require', () => {
