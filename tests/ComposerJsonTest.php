@@ -5,7 +5,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
 /**
- * Campos do composer.json do pacote depois do upgrade para o framework 2.
+ * Campos do composer.json do pacote depois do upgrade para o framework 3.
  *
  * @see docs/USO.md#versão-e-compatibilidade
  * @see docs/AUTOMACAO.md#composerjson
@@ -29,9 +29,9 @@ final class ComposerJsonTest extends TestCase
         self::assertSame('>=8.3', $this->composer['require']['php'] ?? null);
     }
 
-    public function testRequiresFramework2(): void
+    public function testRequiresFramework3(): void
     {
-        self::assertSame('^2.0', $this->composer['require']['elavora/api-framework'] ?? null);
+        self::assertSame('^3.0', $this->composer['require']['elavora/api-framework'] ?? null);
     }
 
     public function testKeepsAwsSdkRequirement(): void
@@ -39,9 +39,9 @@ final class ComposerJsonTest extends TestCase
         self::assertSame('^3.381', $this->composer['require']['aws/aws-sdk-php'] ?? null);
     }
 
-    public function testBranchAliasIs10Dev(): void
+    public function testBranchAliasIs20Dev(): void
     {
-        self::assertSame('1.0-dev', $this->composer['extra']['branch-alias']['dev-main'] ?? null);
+        self::assertSame('2.0-dev', $this->composer['extra']['branch-alias']['dev-main'] ?? null);
     }
 
     public function testAutoloadIsUnchanged(): void
