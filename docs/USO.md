@@ -254,7 +254,7 @@ configuração derivada do `$config` (por exemplo, com `region` `us-east-1` quan
 
 ## Dependências de runtime
 
-- PHP `>=8.3`
+- PHP `>=8.4`
 - `aws/aws-sdk-php` `^3.381`
 - `elavora/api-framework` `^2.0`
 
@@ -269,7 +269,7 @@ projeto e rode `composer update elavora/api-framework elavora/api-storage-s3`:
 ```json
 {
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "elavora/api-framework": "^2.0",
     "elavora/api-storage-s3": "^1.0"
   }
