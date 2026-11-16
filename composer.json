@@ -4,9 +4,9 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "php": ">=8.3",
+    "php": ">=8.4",
     "aws/aws-sdk-php": "^3.381",
-    "elavora/api-framework": "^3.0"
+    "elavora/api-framework": "^4.1"
   },
   "autoload": {
     "psr-4": {
@@ -35,7 +35,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "2.0-dev"
+      "dev-main": "3.0-dev"
     }
   }
 }
