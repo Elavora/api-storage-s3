@@ -11,7 +11,9 @@ use Aws\S3\S3Client;
 use Elavora\Api\Extension\StorageS3\S3Storage;
 use Elavora\Api\Extension\StorageS3\S3StorageExtension;
 use Elavora\Api\Framework\Application;
+use Elavora\Api\Framework\Contracts\InspectsObjects;
 use Elavora\Api\Framework\Contracts\Storage;
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -491,6 +493,149 @@ final class S3StorageTest extends TestCase
         self::assertStringContainsString('reports/a.txt', $url);
         self::assertStringNotContainsString('outro-bucket', $url);
         self::assertStringNotContainsString('outra/chave.txt', $url);
+    }
+
+    // exists e size (InspectsObjects)
+
+    public function testImplementsInspectsObjectsContract(): void
+    {
+        $storage = new S3Storage($this->clientWithResults(), 'uploads');
+
+        self::assertInstanceOf(InspectsObjects::class, $storage);
+    }
+
+    public function testExistsAndSizeSendBucketAndKeyToHeadObject(): void
+    {
+        $storage = new S3Storage($this->clientWithResults(
+            new Result(['ContentLength' => 7]),
+            new Result(['ContentLength' => 7]),
+        ), 'uploads');
+
+        $storage->exists('reports\\2026\\a.txt');
+        $storage->size('  reports/a.txt  ');
+
+        self::assertCount(2, $this->commands);
+        self::assertSame('HeadObject', $this->commands[0]->getName());
+        self::assertSame('uploads', $this->commands[0]['Bucket']);
+        self::assertSame('reports/2026/a.txt', $this->commands[0]['Key']);
+        self::assertSame('HeadObject', $this->commands[1]->getName());
+        self::assertSame('uploads', $this->commands[1]['Bucket']);
+        self::assertSame('reports/a.txt', $this->commands[1]['Key']);
+    }
+
+    public function testExistsIsTrueWhenHeadObjectSucceeds(): void
+    {
+        $storage = new S3Storage($this->clientWithResults(new Result(['ContentLength' => 0])), 'uploads');
+
+        self::assertTrue($storage->exists('a.txt'));
+    }
+
+    public function testSizeReturnsContentLengthAsInteger(): void
+    {
+        $storage = new S3Storage($this->clientWithResults(
+            new Result(['ContentLength' => '1234']),
+            new Result(['ContentLength' => 0]),
+        ), 'uploads');
+
+        self::assertSame(1234, $storage->size('a.txt'));
+        self::assertSame(0, $storage->size('empty.txt'));
+    }
+
+    #[DataProvider('notFoundErrors')]
+    public function testMissingObjectIsFalseAndNull(AwsException $notFound): void
+    {
+        $storage = new S3Storage($this->clientWithResults($notFound, $notFound), 'uploads');
+
+        self::assertFalse($storage->exists('missing.txt'));
+        self::assertNull($storage->size('missing.txt'));
+    }
+
+    /**
+     * @return array<string, array{AwsException}>
+     */
+    public static function notFoundErrors(): array
+    {
+        $command = new Command('HeadObject');
+
+        return [
+            'codigo NotFound com 404' => [new AwsException('Not Found', $command, [
+                'code' => 'NotFound',
+                'response' => new Response(404),
+            ])],
+            'codigo NoSuchKey' => [new AwsException('No such key', $command, ['code' => 'NoSuchKey'])],
+            'status 404 sem codigo' => [new AwsException('Not Found', $command, [
+                'response' => new Response(404),
+            ])],
+        ];
+    }
+
+    #[DataProvider('otherErrors')]
+    public function testOtherS3ErrorsAreNotHiddenAsMissing(AwsException $original): void
+    {
+        $storage = new S3Storage($this->clientWithResults($original, $original), 'uploads');
+
+        foreach (['exists' => fn() => $storage->exists('a.txt'), 'size' => fn() => $storage->size('a.txt')] as $name => $operation) {
+            try {
+                $operation();
+                self::fail("{$name} deveria lancar RuntimeException.");
+            } catch (RuntimeException $exception) {
+                self::assertStringStartsWith(self::ERROR_PREFIX, $exception->getMessage(), $name);
+                self::assertSame($original, $exception->getPrevious(), $name);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, array{AwsException}>
+     */
+    public static function otherErrors(): array
+    {
+        $command = new Command('HeadObject');
+
+        return [
+            'acesso negado' => [new AwsException('Forbidden', $command, [
+                'code' => 'AccessDenied',
+                'response' => new Response(403),
+            ])],
+            'erro do servidor' => [new AwsException('Erro', $command, [
+                'code' => 'InternalError',
+                'response' => new Response(500),
+            ])],
+            'sem resposta (rede)' => [new AwsException('Sem conexao', $command)],
+        ];
+    }
+
+    public function testExistsAndSizeLetNonAwsExceptionsPassThrough(): void
+    {
+        $original = new LogicException('opcao invalida');
+        $storage = new S3Storage($this->clientWithResults($original, $original), 'uploads');
+
+        foreach (['exists' => fn() => $storage->exists('a.txt'), 'size' => fn() => $storage->size('a.txt')] as $name => $operation) {
+            try {
+                $operation();
+                self::fail("{$name} deveria deixar a excecao subir.");
+            } catch (Throwable $exception) {
+                self::assertSame($original, $exception, $name);
+            }
+        }
+    }
+
+    #[DataProvider('invalidKeys')]
+    public function testExistsAndSizeRejectInvalidKeyBeforeAnyS3Call(string $key): void
+    {
+        $storage = new S3Storage($this->clientWithResults(new Result([])), 'uploads');
+
+        foreach (['exists' => fn() => $storage->exists($key), 'size' => fn() => $storage->size($key)] as $name => $operation) {
+            try {
+                $operation();
+                self::fail("{$name} deveria rejeitar a chave.");
+            } catch (InvalidArgumentException $exception) {
+                self::assertSame('A chave de storage e invalida.', $exception->getMessage(), $name);
+            }
+        }
+
+        self::assertCount(1, $this->mock, 'nenhuma requisicao deveria ter sido feita');
+        self::assertSame([], $this->commands);
     }
 
     private function expiresOf(string $url): int
