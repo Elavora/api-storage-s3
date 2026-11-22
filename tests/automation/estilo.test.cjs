@@ -90,8 +90,8 @@ test.describe('composer.json', () => {
         assert.ok('elavora/api-framework' in (c.require || {}), 'dependência de runtime perdida');
     });
 
-    test('require tem elavora/api-framework ^4.1 || ^5.0 || ^6.0 (upgrade para o framework 3 no mesmo PR)', () => {
-        assert.equal((composer().require || {})['elavora/api-framework'], '^4.1 || ^5.0 || ^6.0');
+    test('require tem elavora/api-framework ^6.4 (primeira versão com o contrato InspectsObjects)', () => {
+        assert.equal((composer().require || {})['elavora/api-framework'], '^6.4');
     });
 
     test('extra.branch-alias: dev-main é 3.0-dev', () => {

@@ -31,7 +31,7 @@ final class ComposerJsonTest extends TestCase
 
     public function testRequiresFramework3(): void
     {
-        self::assertSame('^4.1 || ^5.0 || ^6.0', $this->composer['require']['elavora/api-framework'] ?? null);
+        self::assertSame('^6.4', $this->composer['require']['elavora/api-framework'] ?? null);
     }
 
     public function testKeepsAwsSdkRequirement(): void
