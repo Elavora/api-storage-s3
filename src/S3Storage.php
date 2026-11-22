@@ -6,12 +6,13 @@ namespace Elavora\Api\Extension\StorageS3;
 
 use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
+use Elavora\Api\Framework\Contracts\InspectsObjects;
 use Elavora\Api\Framework\Contracts\Storage;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use RuntimeException;
 
-final class S3Storage implements Storage
+final class S3Storage implements Storage, InspectsObjects
 {
     /**
      * @param S3Client $client Cliente S3 usado nas operacoes.
@@ -100,11 +101,65 @@ final class S3Storage implements Storage
     }
 
     /**
+     * Informa se o objeto existe, consultando apenas os metadados (HeadObject).
+     *
+     * Somente a ausencia do objeto resulta em false; as demais falhas do S3 sao propagadas.
+     *
+     * @param string $key Chave do objeto.
+     */
+    public function exists(string $key): bool
+    {
+        return $this->head($key) !== null;
+    }
+
+    /**
+     * Retorna o tamanho do objeto em bytes, ou null se ele nao existe (HeadObject).
+     *
+     * @param string $key Chave do objeto.
+     */
+    public function size(string $key): ?int
+    {
+        $result = $this->head($key);
+
+        return $result === null ? null : (int) ($result['ContentLength'] ?? 0);
+    }
+
+    /**
      * Retorna o cliente S3 usado pela instancia.
      */
     public function client(): S3Client
     {
         return $this->client;
+    }
+
+    /**
+     * Consulta os metadados do objeto. Devolve null quando o S3 informa que ele nao existe.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function head(string $key): ?array
+    {
+        $arguments = ['Bucket' => $this->bucket, 'Key' => $this->normalizedKey($key)];
+
+        try {
+            return $this->client->headObject($arguments)->toArray();
+        } catch (AwsException $exception) {
+            if ($this->isNotFound($exception)) {
+                return null;
+            }
+
+            throw new RuntimeException(
+                'Nao foi possivel executar a operacao no storage S3: ' . $exception->getMessage(),
+                (int) $exception->getCode(),
+                $exception,
+            );
+        }
+    }
+
+    private function isNotFound(AwsException $exception): bool
+    {
+        return $exception->getStatusCode() === 404
+            || in_array($exception->getAwsErrorCode(), ['NotFound', 'NoSuchKey'], true);
     }
 
     /**

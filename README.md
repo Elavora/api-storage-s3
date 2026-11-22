@@ -23,6 +23,10 @@ $storage = $application->container()->get(Storage::class);
 $url = $storage->temporaryUrl('reports/example.txt');
 ```
 
+`S3Storage` também implementa `Elavora\Api\Framework\Contracts\InspectsObjects`, com `exists($key): bool` e
+`size($key): ?int` (via `headObject`, sem baixar o objeto), para conferir um upload direto. Objeto inexistente dá
+`false`/`null`; qualquer outra falha do S3 vira `RuntimeException`. Requer `elavora/api-framework` `^6.4`.
+
 O pacote registra `S3ClientFactory` internamente e reutiliza clientes com a
 mesma configuração via `S3ClientManager`. Para trocar a criação do cliente,
 registre uma factory própria antes da extensão ou informe `clientFactory` no
@@ -40,7 +44,7 @@ Especificação completa, exemplos e erros: [docs/USO.md](docs/USO.md).
 composer require elavora/api-storage-s3
 ```
 
-Requisitos: PHP 8.4 ou superior, `elavora/api-framework` `^4.1 || ^5.0 || ^6.0` e `aws/aws-sdk-php` `^3.381`.
+Requisitos: PHP 8.4 ou superior, `elavora/api-framework` `^6.4` e `aws/aws-sdk-php` `^3.381`.
 
 Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
 8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o

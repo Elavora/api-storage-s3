@@ -89,7 +89,12 @@ public function register(Elavora\Api\Framework\Application $application): void
 | `get(string $key, array $options = []): array` | o resultado do `getObject`, como array |
 | `delete(string $key, array $options = []): array` | o resultado do `deleteObject`, como array |
 | `temporaryUrl(string $key, ?DateTimeImmutable $expiresAt = null, array $options = []): string` | URL assinada de leitura |
+| `exists(string $key): bool` | `true` se o objeto existe, `false` se não existe |
+| `size(string $key): ?int` | o tamanho do objeto em bytes, ou `null` se não existe |
 | `client(): Aws\S3\S3Client` | o cliente usado pela instância |
+
+`S3Storage` também implementa `Elavora\Api\Framework\Contracts\InspectsObjects` (framework `^6.4`), o contrato opcional
+para conferir objetos sem baixá-los. Veja [Verificar objetos](#verificar-objetos-exists-e-size).
 
 Regras:
 
@@ -115,9 +120,33 @@ Regras:
     vencem, como nos outros métodos.
 - `client()` devolve o mesmo `S3Client` recebido no construtor.
 
+### Verificar objetos: `exists` e `size`
+
+Servem, por exemplo, para conferir um upload direto (o cliente envia o arquivo para a URL pré-assinada): ao concluir, a
+aplicação confere se o objeto chegou e se o tamanho bate com o declarado.
+
+```php
+$storage = $application->container()->get(Storage::class);
+
+if ($storage instanceof InspectsObjects && $storage->size('reports/example.txt') === $declaredSize) {
+    // o arquivo chegou e o tamanho confere
+}
+```
+
+- Os dois métodos chamam `headObject` com `Bucket` e a `Key` normalizada: só os metadados são consultados, o conteúdo do
+  objeto não é baixado.
+- `exists`: `true` se o `headObject` responde com sucesso; `false` se o S3 responde que o objeto não existe (status 404,
+  código `NotFound` ou `NoSuchKey`).
+- `size`: o `ContentLength` do `headObject` como inteiro; `null` se o objeto não existe (mesma regra do `exists`). Um
+  objeto vazio tem tamanho `0`, não `null`.
+- **Só o "não existe" é tratado.** Qualquer outra falha do SDK (acesso negado, erro de rede etc.) é convertida em
+  `RuntimeException`, como nas outras operações (veja [Erros do S3](#erros-do-s3)), e **não** vira `false` nem `null`.
+- O `HEAD` do S3 não traz corpo de erro, então um bucket inexistente também responde 404 e resulta em `false`/`null`.
+- Chave inválida lança `InvalidArgumentException` antes de qualquer chamada ao S3, como nos outros métodos.
+
 ### Chaves
 
-Toda chave passa pela mesma normalização, em `put`, `get`, `delete` e `temporaryUrl`: espaços, tabs, quebras de linha
+Toda chave passa pela mesma normalização, em `put`, `get`, `delete`, `temporaryUrl`, `exists` e `size`: espaços, tabs, quebras de linha
 e bytes nulos nas pontas são removidos (o `trim` padrão do PHP) e `\` vira `/`. A chave **normalizada** é a enviada ao
 S3. Chave inválida lança `InvalidArgumentException` (`A chave de storage e invalida.`), **antes** de qualquer chamada
 ao S3 (nenhuma requisição é feita).
@@ -141,7 +170,8 @@ ao S3 (nenhuma requisição é feita).
 ### Erros do S3
 
 Uma falha do SDK (`Aws\Exception\AwsException`: objeto ou bucket inexistente, acesso negado, erro de rede do SDK etc.)
-em `put`, `get` ou `delete` é convertida em `RuntimeException`:
+em `put`, `get`, `delete`, `exists` ou `size` é convertida em `RuntimeException` (em `exists` e `size`, exceto o caso
+de objeto inexistente, que dá `false` e `null`):
 
 - mensagem: `Nao foi possivel executar a operacao no storage S3: ` seguida da mensagem do SDK;
 - código: o código da exceção original, como inteiro;
@@ -256,7 +286,7 @@ configuração derivada do `$config` (por exemplo, com `region` `us-east-1` quan
 
 - PHP `>=8.4`
 - `aws/aws-sdk-php` `^3.381`
-- `elavora/api-framework` `^2.0`
+- `elavora/api-framework` `^6.4` (primeira versão com o contrato `InspectsObjects`)
 
 O pacote não exige extensão de PHP além das que o SDK já usa. Os testes não chamam o S3: usam o `Aws\MockHandler`.
 
