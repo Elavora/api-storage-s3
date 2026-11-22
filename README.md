@@ -23,6 +23,10 @@ $storage = $application->container()->get(Storage::class);
 $url = $storage->temporaryUrl('reports/example.txt');
 ```
 
+`S3Storage` também implementa `Elavora\Api\Framework\Contracts\InspectsObjects`, com `exists($key): bool` e
+`size($key): ?int` (via `headObject`, sem baixar o objeto), para conferir um upload direto. Objeto inexistente dá
+`false`/`null`; qualquer outra falha do S3 vira `RuntimeException`. Requer `elavora/api-framework` `^6.4`.
+
 O pacote registra `S3ClientFactory` internamente e reutiliza clientes com a
 mesma configuração via `S3ClientManager`. Para trocar a criação do cliente,
 registre uma factory própria antes da extensão ou informe `clientFactory` no
