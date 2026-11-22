@@ -44,7 +44,7 @@ Especificação completa, exemplos e erros: [docs/USO.md](docs/USO.md).
 composer require elavora/api-storage-s3
 ```
 
-Requisitos: PHP 8.4 ou superior, `elavora/api-framework` `^4.1 || ^5.0 || ^6.0` e `aws/aws-sdk-php` `^3.381`.
+Requisitos: PHP 8.4 ou superior, `elavora/api-framework` `^6.4` e `aws/aws-sdk-php` `^3.381`.
 
 Versão `1.0`: atualiza o pacote para o `elavora/api-framework` 2.0, que substitui o `^0.3.1`, e sobe o PHP mínimo de
 8.1 para 8.3. A API do pacote não muda; quem usa o `^0.3` do framework precisa atualizar junto (veja o
