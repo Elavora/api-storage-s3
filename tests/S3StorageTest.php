@@ -597,9 +597,9 @@ final class S3StorageTest extends TestCase
                 'code' => 'AccessDenied',
                 'response' => new Response(403),
             ])],
-            'erro do servidor' => [new AwsException('Erro', $command, [
-                'code' => 'InternalError',
-                'response' => new Response(500),
+            'requisicao invalida' => [new AwsException('Erro', $command, [
+                'code' => 'InvalidRequest',
+                'response' => new Response(400),
             ])],
             'sem resposta (rede)' => [new AwsException('Sem conexao', $command)],
         ];
